@@ -114,11 +114,18 @@ target_include_directories(
 	world
 	)
 
+if (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
 target_link_libraries(
 	fheroes2
-	${MINGW_LIBRARIES}  # Be sure define it first. Beware WinMain@16 error!!
-	${SDL_MIXER_LIBRARIES}
 	engine
-	Threads::Threads
-	ZLIB::ZLIB
 	)
+else()
+	target_link_libraries(
+		fheroes2
+		${MINGW_LIBRARIES}  # Be sure define it first. Beware WinMain@16 error!!
+		${SDL_MIXER_LIBRARIES}
+		engine
+		Threads::Threads
+		ZLIB::ZLIB
+		)
+endif()
