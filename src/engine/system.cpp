@@ -84,6 +84,8 @@ namespace
         return System::concatPath( "ux0:data", prog );
 #elif defined( TARGET_NINTENDO_SWITCH )
         return System::concatPath( "/switch", prog );
+#elif defined( __EMSCRIPTEN__ )
+        return System::concatPath( "/", prog);
 #elif defined( ANDROID )
         (void)prog;
 

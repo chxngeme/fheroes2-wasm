@@ -36,11 +36,17 @@ else(USE_SYSTEM_LIBSMACKER)
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/libsmacker>
 		$<INSTALL_INTERFACE:include>
 		)
-
-	target_link_libraries(
-		smacker
-		Threads::Threads # To match the build settings of the main app
-		)
+	if (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+		set(USE_FLAGS "-s USE_PTHREADS=1")
+		target_link_libraries(
+			smacker
+			)
+	else()
+		target_link_libraries(
+			smacker
+			Threads::Threads # To match the build settings of the main app
+			)
+	endif()
 
 	export(TARGETS smacker FILE SmackerConfig.cmake)
 endif(USE_SYSTEM_LIBSMACKER)

@@ -51,6 +51,13 @@ target_include_directories(
 	$<INSTALL_INTERFACE:include>
 	)
 
+if (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+set(USE_FLAGS "-sUSE_SDL=2 -sUSE_ZLIB=1 -sUSE_VORBIS=1 -sUSE_OGG=1 -sUSE_SDL_MIXER=2 -sUSE_SDL_IMAGE=2 -sUSE_LIBPNG=1 -sUSE_PTHREADS=1")
+target_link_libraries(
+	engine
+	smacker
+	)
+else()
 target_link_libraries(
 	engine
 	smacker
@@ -63,5 +70,6 @@ target_link_libraries(
 	Threads::Threads # To match the build settings of the main app
 	ZLIB::ZLIB
 	)
+endif()
 
 export(TARGETS engine FILE EngineConfig.cmake)

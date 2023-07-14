@@ -55,15 +55,23 @@ set_property(CACHE USE_SDL_VERSION PROPERTY STRINGS SDL SDL2)
 #
 # Library & feature detection
 #
-find_package(${USE_SDL_VERSION} REQUIRED)
-find_package(${USE_SDL_VERSION}_mixer REQUIRED)
-find_package(ZLIB REQUIRED)
-find_package(Threads)
+if (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+    set(USE_FLAGS "-O0 -g3 -sPTHREAD_POOL_SIZE=100 -sPTHREAD_POOL_SIZE_STRICT=2 -sNO_DISABLE_EXCEPTION_CATCHING -sUSE_SDL=2 -sUSE_ZLIB=1 -sUSE_VORBIS=1 -sUSE_OGG=1 -sUSE_SDL_MIXER=2 -sUSE_SDL_IMAGE=2 -sUSE_LIBPNG=1 -sUSE_PTHREADS=1 -sSHARED_MEMORY")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS}")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${USE_FLAGS}")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${USE_FLAGS}")
+    set(CMAKE_EXECUTABLE_SUFFIX .html)
+else()
+		find_package(${USE_SDL_VERSION} REQUIRED)
+		find_package(${USE_SDL_VERSION}_mixer REQUIRED)
+		find_package(ZLIB REQUIRED)
+		find_package(Threads)
 
-if(ENABLE_IMAGE)
-	find_package(${USE_SDL_VERSION}_image REQUIRED)
-	find_package(PNG REQUIRED)
-endif(ENABLE_IMAGE)
+		if(ENABLE_IMAGE)
+			find_package(${USE_SDL_VERSION}_image REQUIRED)
+			find_package(PNG REQUIRED)
+		endif(ENABLE_IMAGE)
+endif()
 
 #
 # Source files
