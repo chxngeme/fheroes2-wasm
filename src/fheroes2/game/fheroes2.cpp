@@ -21,6 +21,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <emscripten.h>
 #include <cstdlib>
 #include <exception>
 #include <iostream>
@@ -234,6 +235,36 @@ namespace
     };
 }
 
+#if defined(__EMSCRIPTEN__)
+EM_ASYNC_JS(void, init_fs, (), {
+        await new Promise((resolve, reject) => {
+    FS.mkdir('/persistent');
+    FS.mount(IDBFS, {}, '/persistent');
+    resolve();
+    // sync from persisted state into memory and then
+    // run the 'test' function
+    })
+})
+EM_ASYNC_JS(void, sync_fs_start, (), {
+        await new Promise((resolve, reject) => {
+    FS.syncfs(true, function (err) {
+      // assert(!err);
+      if (err) reject("Error syncing FS!");
+      resolve()
+    });  
+    })
+})
+EM_ASYNC_JS(void, sync_fs_quit, (), {
+        await new Promise((resolve, reject) => {
+    FS.syncfs(function (err) {
+      // assert(!err);
+      if (err) reject("Error syncing FS!");
+      resolve()
+    });  
+    })
+})
+#endif
+
 // SDL1: this app is not linked against the SDLmain.lib, implement our own WinMain
 #if defined( _WIN32 ) && !SDL_VERSION_ATLEAST( 2, 0, 0 )
 #undef main
@@ -256,7 +287,10 @@ int main( int argc, char ** argv )
 #else
     (void)argc;
 #endif
-
+    #if defined(__EMSCRIPTEN__)
+    init_fs();
+    sync_fs_start();
+    #endif
     try {
         const fheroes2::HardwareInitializer hardwareInitializer;
         Logging::InitLog();
@@ -336,6 +370,8 @@ int main( int argc, char ** argv )
         ERROR_LOG( "An unknown exception occurred during application runtime." )
         return EXIT_FAILURE;
     }
-
+    #if defined(__EMSCRIPTEN__)
+    sync_fs_quit();
+    #endif
     return EXIT_SUCCESS;
 }
