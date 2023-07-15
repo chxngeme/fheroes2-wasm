@@ -564,6 +564,10 @@ const std::vector<std::string> & Settings::GetRootDirs()
         dirs.emplace_back( std::move( dataPath ) );
     }
 
+#if defined( __EMSCRIPTEN__ )
+    dirs.emplace_back("/assets");
+#endif
+
     // Remove all paths that are not directories.
     dirs.erase( std::remove_if( dirs.begin(), dirs.end(), []( const std::string & path ) { return !System::IsDirectory( path ); } ), dirs.end() );
 
