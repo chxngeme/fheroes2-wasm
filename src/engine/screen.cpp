@@ -952,17 +952,18 @@ namespace
             if ( _window != nullptr ) {
                 // We do not need to rebuild window but renderer only.
                 if ( _texture != nullptr ) {
-                    SDL_DestroyTexture( _texture );
-                    _texture = nullptr;
+                    // SDL_DestroyTexture( _texture );
+                    // _texture = nullptr;
                 }
 
                 if ( _renderer != nullptr ) {
-                    SDL_DestroyRenderer( _renderer );
-                    _renderer = nullptr;
+                    // SDL_DestroyRenderer( _renderer );
+                    // _renderer = nullptr;
                 }
 
                 const fheroes2::Display & display = fheroes2::Display::instance();
-                _createRenderer( display.width(), display.height() );
+                // _createRenderer( display.width(), display.height() );
+                SDL_RenderSetVSync(_renderer, _isVSyncEnabled ? 1 : 0);
             }
         }
 
@@ -1069,7 +1070,8 @@ namespace
 
         bool allocate( fheroes2::ResolutionInfo & resolutionInfo, bool isFullScreen ) override
         {
-            clear();
+            bool refresh = this->isInit();
+            if (!refresh) clear();
 
             const std::vector<fheroes2::ResolutionInfo> resolutions = getAvailableResolutions();
             assert( !resolutions.empty() );
@@ -1099,13 +1101,16 @@ namespace
             }
 
             flags |= SDL_WINDOW_RESIZABLE;
-
+            if (refresh) {
+            SDL_SetWindowSize(_window, resolutionInfo.gameWidth, resolutionInfo.screenHeight);
+            } else {
             _window = SDL_CreateWindow( _previousWindowTitle.data(), _prevWindowPos.x, _prevWindowPos.y, resolutionInfo.screenWidth, resolutionInfo.screenHeight, flags );
             if ( _window == nullptr ) {
                 ERROR_LOG( "Failed to create an application window of " << resolutionInfo.screenWidth << " x " << resolutionInfo.screenHeight
                                                                         << " size. The error: " << SDL_GetError() )
                 clear();
                 return false;
+            }
             }
 
             _syncFullScreen();
@@ -1161,7 +1166,7 @@ namespace
 
             _createPalette();
 
-            return _createRenderer( resolutionInfo.gameWidth, resolutionInfo.gameHeight );
+            return _createRenderer( resolutionInfo.gameWidth, resolutionInfo.gameHeight, refresh );
         }
 
         void updatePalette( const std::vector<uint8_t> & colorIds ) override
@@ -1176,6 +1181,12 @@ namespace
                     ERROR_LOG( "Failed to set palette color. The error value: " << returnCode << ", description: " << SDL_GetError() )
                 }
             }
+        }
+
+
+        bool isInit( ) override
+        {
+            return _window != nullptr && _renderer != nullptr;
         }
 
         bool isMouseCursorActive() const override
@@ -1265,11 +1276,12 @@ namespace
             }
         }
 
-        bool _createRenderer( const int32_t width_, const int32_t height_ )
+        bool _createRenderer( const int32_t width_, const int32_t height_, bool refresh = false )
         {
             const uint32_t renderingFlags = renderFlags();
 
-            // SDL_PIXELFORMAT_INDEX8 is not supported by SDL 2 even being available in the list of formats.
+            if (!refresh) {
+                            // SDL_PIXELFORMAT_INDEX8 is not supported by SDL 2 even being available in the list of formats.
             _renderer = SDL_CreateRenderer( _window, _driverIndex, renderingFlags );
             if ( _renderer == nullptr ) {
                 ERROR_LOG( "Failed to create a window renderer of " << width_ << " x " << height_ << " size. The error: " << SDL_GetError() )
@@ -1277,6 +1289,7 @@ namespace
                 return false;
             }
 
+            }
             int returnCode = SDL_SetRenderDrawColor( _renderer, 0, 0, 0, SDL_ALPHA_OPAQUE );
             if ( returnCode < 0 ) {
                 ERROR_LOG( "Failed to set default color for renderer. The error value: " << returnCode << ", description: " << SDL_GetError() )
@@ -1579,9 +1592,10 @@ namespace fheroes2
         const bool isFullScreen = _engine->isFullScreen();
 
         // deallocate engine resources
-        _engine->clear();
-
-        _prevRoi = {};
+        if (!_engine->isInit()) {
+            _engine->clear();
+            _prevRoi = {};
+        }
 
         // allocate engine resources
         if ( !_engine->allocate( info, isFullScreen ) ) {

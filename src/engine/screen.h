@@ -161,6 +161,11 @@ namespace fheroes2
             return false;
         }
 
+        virtual bool isInit()
+        {
+            return false;
+        }
+
         virtual bool isMouseCursorActive() const
         {
             return false;
