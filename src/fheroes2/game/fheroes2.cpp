@@ -249,7 +249,7 @@ EM_ASYNC_JS(void, sync_fs_start, (), {
         await new Promise((resolve, reject) => {
     FS.syncfs(true, function (err) {
       // assert(!err);
-      if (err) reject("Error syncing FS!");
+      if (err) console.log(err, "Error syncing FS!");
       resolve()
     });  
     })
@@ -258,7 +258,7 @@ EM_ASYNC_JS(void, sync_fs_quit, (), {
         await new Promise((resolve, reject) => {
     FS.syncfs(function (err) {
       // assert(!err);
-      if (err) reject("Error syncing FS!");
+      if (err) console.log(err, "Error syncing FS!");
       resolve()
     });  
     })

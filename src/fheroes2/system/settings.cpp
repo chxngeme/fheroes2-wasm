@@ -565,7 +565,7 @@ const std::vector<std::string> & Settings::GetRootDirs()
     }
 
 #if defined( __EMSCRIPTEN__ )
-    dirs.emplace_back("/assets");
+    dirs.emplace_back("/persistent");
 #endif
 
     // Remove all paths that are not directories.
